@@ -3,32 +3,30 @@ package com.example.osm
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.preference.PreferenceManager
-import android.widget.MediaController
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import org.json.JSONException
 import org.json.JSONObject
 import org.osmdroid.config.Configuration
-import org.osmdroid.titleprovider.tilesource.TitleSourceFactory
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
-import org.osmdroid.views.CustomZoomButtonController
+import org.osmdroid.views.CustomZoomButtonsController
 import org.osmdroid.views.MapController
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.OverlayItem
 import java.io.IOException
 import java.nio.charset.StandardCharsets
-import java.util.function.Predicate
 
 class MainActivity : AppCompatActivity() {
     var modelMainList: MutableList<ModelMain> = ArrayList()
-    lateinit var mapController: MapContoller
+    lateinit var mapController: MapController
     lateinit var overlayItem: ArrayList<OverlayItem>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        Configuration.getInstance().load(this, Predicate.getDefaultSharedPreferences(this))
+        Configuration.getInstance().load(this, PreferenceManager.getDefaultSharedPreferences(this))
 
         val geoPoint = GeoPoint(-7.78165, 110.414497)
         mapView.setMultiTouchControls(true)
@@ -41,12 +39,11 @@ class MainActivity : AppCompatActivity() {
         mapController.zoomTo(15)
 
         getLocationMarker()
-
     }
 
     private fun getLocationMarker() {
         try {
-            val stream = assets.open("sample.maps.json")
+            val stream = assets.open("samples_maps.json")
             val size = stream.available()
             val buffer = ByteArray(size)
             stream.read(buffer)
@@ -56,11 +53,12 @@ class MainActivity : AppCompatActivity() {
                 val jsonObject = JSONObject(strContent)
                 val jsonArrayResult = jsonObject.getJSONArray("results")
                 for (i in 0 until jsonArrayResult.length()) {
-                    val jsonObjectResult = jsonArrayResult.getJSONObject(1)
+                    val jsonObjectResult = jsonArrayResult.getJSONObject(i)
                     val modelMain = ModelMain()
                     modelMain.strName = jsonObjectResult.getString("name")
-                    modelMain.StrVicinity = jsonObjectResult.getString("vicinity")
+                    modelMain.strVicinity = jsonObjectResult.getString("vicinity")
 
+                    //get lat loc
                     val jsonObjectGeo = jsonObjectResult.getJSONObject( "geometry")
                     val jsonObjectLoc = jsonObjectGeo.getJSONObject("location")
                     modelMain.latLoc = jsonObjectLoc.getDouble("lat")
@@ -71,7 +69,7 @@ class MainActivity : AppCompatActivity() {
             } catch (e: JSONException) {
                 e.printStackTrace()
             }
-        } catch (ignored: I0Exception) {
+        } catch (ignored: IOException) {
             Toast.makeText(
                 this@MainActivity,
                 "Oops, ada yang tidak beres. Coba ulangi beberapa saat lagi.",
@@ -84,14 +82,14 @@ class MainActivity : AppCompatActivity() {
             overlayItem = ArrayList()
             overlayItem.add(
                 OverlayItem(
-                    modelList[i].strName, modelList[i].StrVicinity, GeoPoint(
-                        modelList[i].latLoc, modelList [i]. longLoc
+                    modelList[i].strName, modelList[i].strVicinity, GeoPoint(
+                        modelList[i].latLoc, modelList [i].longLoc
                     )
                 )
             )
             val info = ModelMain()
             info.strName = modelList[i].strName
-            info.StrVicinity = modelList [i].strVicinity
+            info.strVicinity = modelList [i].strVicinity
 
             val marker = Marker(mapView)
             marker.icon = resources.getDrawable(R.drawable.ic_baseline_location_on_24)
@@ -99,7 +97,7 @@ class MainActivity : AppCompatActivity() {
             marker.relatedObject = info
             marker.infoWindow = CustomInfoWindow (mapView)
             marker.setOnMarkerClickListener { item, arg1 ->
-                item.showInfowindow()
+                item.showInfoWindow()
                 true
             }
             mapView.overlays.add(marker)
@@ -108,7 +106,7 @@ class MainActivity : AppCompatActivity() {
     }
     public override fun onResume() {
         super.onResume()
-        Configuration.getInstance().load( this, Preferenceffanager.getDefaultSharedPreferenses(this))
+        Configuration.getInstance().load( this, PreferenceManager.getDefaultSharedPreferences(this))
         if (mapView != null) {
             mapView.onResume()
         }
@@ -116,7 +114,7 @@ class MainActivity : AppCompatActivity() {
 
     public override fun onPause() {
         super.onPause()
-        Configuration.getInstance().load( this, Preferenceffanager.getDefaultSharedPreferenses(this))
+        Configuration.getInstance().load( this, PreferenceManager.getDefaultSharedPreferences(this))
         if (mapView != null) {
             mapView.onPause()
         }

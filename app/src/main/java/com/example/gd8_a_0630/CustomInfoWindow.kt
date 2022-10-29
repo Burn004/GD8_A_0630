@@ -19,7 +19,7 @@ class CustomInfoWindow(mapView: MapView?) : InfoWindow(R.layout.layout_tooltip, 
         val imageClose = mView.imageClose
 
         tvNamaLokasi.text = infoWindowData.strName
-        tvAlamat.text = infoWindowData.StrVicinity
+        tvAlamat.text = infoWindowData.strVicinity
         imageClose.setOnClickListener {
             marker.closeInfoWindow()
         }
